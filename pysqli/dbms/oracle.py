@@ -29,7 +29,7 @@ class OracleForge(SQLForge):
 	def take(self, records, index):
 		return 'select * FROM %s WHERE ROWNUM=%d' % (records, index)
 
-  ############################################
+    ############################################
 	# VERSION
 	############################################
 

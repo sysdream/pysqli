@@ -9,6 +9,7 @@ from plugin import Plugin, allow, plugin
 from injector import GetInjector, PostInjector, CookieInjector, UserAgentInjector, CmdInjector, ContextBasedInjector
 from forge import SQLForge
 from wrappers import DatabaseWrapper, TableWrapper, FieldWrapper
+from triggers import StatusTrigger, RegexpTrigger, Trigger
 
 __all__ = [
     'InbandContext',
@@ -25,5 +26,8 @@ __all__ = [
     'SQLForge',
     'DatabaseWrapper',
     'TableWrapper',
-    'FieldWrapper'
+    'FieldWrapper',
+    'Trigger',
+    'RegexpTrigger',
+    'StatusTrigger',
 ]

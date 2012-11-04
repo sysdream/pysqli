@@ -168,7 +168,6 @@ class Plugin:
         """
         raise PluginMustOverride
 
-
     def get_forge(self):
         """
         Retrieve the forge instance

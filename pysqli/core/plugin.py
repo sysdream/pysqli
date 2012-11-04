@@ -176,17 +176,6 @@ class Plugin:
         return self.forge
 
 
-    def set_context(self, context):
-        """
-        Set injection context.
-        
-        context: context to set (instance of Context)
-        """
-        self.context = context
-        self.forge = self.forge_class(context)
-        self.injector.setContext(context)
-
-
     def set_injector(self, injector):
         """
         Set injector.
@@ -210,6 +199,15 @@ class Plugin:
         """
         self.forge_class = forge
         self.forge = forge(self.context)
+
+
+    def set_trigger(self, trigger):
+        """
+        Set injector's default trigger
+
+        trigger: the new trigger to use
+        """
+        self.injector.set_trigger(trigger)
 
 
     def use(self, db):

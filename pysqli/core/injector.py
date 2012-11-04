@@ -97,6 +97,8 @@ class AbstractInjector(object):
         their default values as values. 
         
         target specifies the parameter to use for the injection.
+        smooth specifies the injection method (full replacement or
+        inplace replacement)
         '''
         self._parameters = parameters
         self._target = target
@@ -498,5 +500,4 @@ class CmdInjector(ContextBasedInjector):
         result = Popen(parameters, stdout=PIPE)
         content = result.communicate()[0]
         return self.process_response(Response(result.returncode, content))
-    
-    
+ 

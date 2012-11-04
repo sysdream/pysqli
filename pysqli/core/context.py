@@ -30,7 +30,8 @@ class Context:
     def __init__(self, method=INBAND, field_type=FIELD_STR, url='', \
         params=None, target=None, comment='/*', strdelim="'", union_tag=None,\
         union_fields=[], default='0', union_target=-1, use_ssl=False, \
-        smooth=False, headers=None, cookie=None, multithread=True):
+        smooth=False, headers=None, cookie=None, multithread=True, \
+        truncate=False,encode_str=False):
         
         '''
         Default injection context constructor.
@@ -45,8 +46,8 @@ class Context:
         self.__str_delim = strdelim
         self.__default = default
         self.__use_ssl = use_ssl
-        self.__encode_str = False
-        self.__truncate = False
+        self.__encode_str = encode_str
+        self.__truncate = truncate
         self.__field_type = field_type
         self.__smooth = smooth
         self.__headers = headers

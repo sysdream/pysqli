@@ -15,9 +15,9 @@ FIELDS_ENUM = 0x08
 STR = 0x10
 COMMENT = 0x20
 
-class PluginFactory:
+class DBMSFactory:
     """
-    Plugin factory.
+    DBMS factory.
     
     Set up a DBMS plugin with a specific injector.
     """
@@ -86,26 +86,26 @@ class PluginFactory:
         inst.desc = self._desc
         return inst
 
-class plugin:
+class dbms:
 
     """
-    Class decorator for plugin
+    Class decorator for DBMS
 
-    Use it to declare a class as a plugin. 
+    Use it to declare a class as a DBMS plugin. 
     """
 
     def __init__(self, name, desc):
         """
         Constructor.
         
-        name: plugin name
-        desc: plugin description
+        name: dbms name
+        desc: dbms description
         """
         self.name = name
         self.desc = desc
 
     def __call__(self, inst):
-        return PluginFactory(inst, self.name, self.desc)
+        return DBMSFactory(inst, self.name, self.desc)
 
 
 class allow:
@@ -131,9 +131,17 @@ class allow:
         return wrapped_
 
 
-class Plugin:
+class DBMS:
     """
-    Base class for plugins
+    DBMS default class
+
+    This class implements an abstraction of the underlying DBMS. It
+    provides methods to perform databases and tables enumeraton as
+    well as data extraction.
+
+    This abstraction allows the user to focus on the data he wants
+    to get rather than the injected code.
+
     """
 
     def __init__(self, forge, injector=None, limit_count_max=500):

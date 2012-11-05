@@ -5,7 +5,7 @@
 # @author Damien "virtualabs" Cauquil <virtualabs@gmail.com>
 
 from context import Context, InbandContext, BlindContext
-from plugin import Plugin, allow, plugin
+from dbms import DBMS, allow, dbms
 from injector import GetInjector, PostInjector, CookieInjector, UserAgentInjector, CmdInjector, ContextBasedInjector
 from forge import SQLForge
 from wrappers import DatabaseWrapper, TableWrapper, FieldWrapper
@@ -15,7 +15,7 @@ __all__ = [
     'InbandContext',
     'BlindContext',
     'Context',
-    'Plugin',
+    'DBMS',
     'allow',
     'plugin',
     'GetInjector',

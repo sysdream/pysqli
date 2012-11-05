@@ -17,6 +17,14 @@ class OptimizedAsyncBisecInjector(Thread):
         
     This injector uses an improved bisection to speed up the
     injection.
+
+    The main idea behind this improved method is simple:
+    using Python's multithreading, 3 parallelized requests take approx.
+    the same time to run than 2 requests (statistically). This can be
+    used to speed up the classic bisection approach by not testing a single
+    value but 3 at a time. Given the results, the search interval is divided.
+    by 4 instead of 2. 12 requests are required instead of 8 to complete the
+    search, the same as 6 successive requests instead of 8. 
     """
 
     def __init__(self, db, cdt, min, max):
@@ -104,12 +112,13 @@ class AsyncInjector(Thread):
             raise 'oops'
             self.error = True
 
+
 class AsyncPool:
     
     """
     Pool of asynchronous tasks.
     
-    This class handles a set of requests, send them through the injectors and
+    This class handles a set of requests, send them through the injector and
     group the results.
     """
 

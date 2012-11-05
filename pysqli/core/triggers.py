@@ -7,10 +7,12 @@ of an injection.
 This module provides a default class (Trigger) and two other classes implement-
 ing status-based triggering and regexp-based triggering.
 
-Two modes are available: MODE_ERROR and MODE_SUCCESS.
+Two modes are available: MODE_ERROR and MODE_SUCCESS.MODE_ERROR must be used
+with triggers detecting errors, while MODE_SUCCESS must be used with triggers
+detecting success answers. 
 
-MODE_ERROR must be used with triggers detecting errors, while MODE_SUCCESS must
-be used with triggers detecting success answers. 
+Note that PySQLi exploitation engine is based on conditional errors (when
+the tested condition is false)
 
 classes:
     
@@ -82,7 +84,7 @@ class RegexpTrigger(Trigger):
         """
         Constructor
         
-        regexps: either a list of regexp or a string representing a regexp
+        regexps: either a list of regexp or a string representing a regexp to match
         """
         Trigger.__init__(self, *args, **kargs)
         self._regexps = []

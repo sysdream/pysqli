@@ -1,11 +1,25 @@
 #-*- coding: utf-8 -*-
 
+"""
+This module provides three wrappers, as an abstraction layer
+of the exploited database. 
+
+Classes:
+
+    DatabaseWrapper
+    TableWrapper
+    FieldWrapper
+
+"""
+
 from exceptions import Unavailable, UnknownField
 
-## Field wrapper
-# This class is a simple wrapper for table's fields
 
 class FieldWrapper:
+    """
+    Database field/column abstraction layer.
+    """
+
     def __init__(self, dbms, table, db, field):
         self.dbms = dbms
         self.table = table
@@ -22,73 +36,69 @@ class FieldWrapper:
         return self.field
 
 
-## Table wrapper
-# This class is part of PySQLi "magic"
-#
-# It provides an interface to the injection framework, automating the reading and the analysis
-# of a DBMS table's structure. This class provides a bunch of methods to query directly a given
-# table:
-#
-#  - select(): allows multiple rows selection and field selection
-#  - all(): dumps all the rows (generator, should be use in a for loop)
-#  - describe(): describes the table's structure
-
 class TableWrapper:
-    
-    
-    ## Constructor
-    # @param dbms DBMS Plugin object
-    # @param table Table name
-    # @param db Database name
+
+    """
+    Database table abstraction layer.
+
+    This wrapper provides methods to enumerate every field
+    and extract data from a given table.
+    """
     
     def __init__(self, dbms, table, db):
+        """
+        Constructor
+
+        dbms: pysqli's dbms instance
+        table: target table name
+        db: wrapped database instance
+        """
         self.dbms = dbms
         self.table = table
         self.db = db
         self.__fields = None
     
     
-    ## Get all the fields of this table
-    # @return List of FieldWrapper objects
-    
     def fields(self):
+        """
+        Retrieve all table's fields (wrapped)
+        """
         self.update()
         return self.__fields
 
 
-    ## Update fields
-    # Update fields if it has not been done. If it has already been done, do nothing except if force is set to True.
-    # @param force Force update
-
     def update(self, force=False):
+        """
+        Update fields info and cache.
+
+        force: Force cache cleanup before updating.
+        """
         if (self.__fields is None) or force:
             self.__fields = [f for f in self.dbms.fields(self.table,self.db)]
 
-    ## Describe table's structure
-    # Describe the table's structure in a string ready to be displayed
-    # @return Table's desc string
-    
     def describe(self):
+        """
+        Describes table structure.
+        """
         self.update()
         return "Table %s\n"%self.table+'\n'.join([' -> %s'%field for field in self.__fields])
 
 
-    ## Count table's records
-    # @return Table's cardinal
-    
     def count(self):
+        """
+        Count table's records.
+        """
         return self.dbms.count_table_records(self.table,self.db,1000000)
 
 
-    ## Select some rows from the table
-    # Select a given number of rows and given fields from a starting index
-    #
-    # @param pos Starting index
-    # @param num Number of rows to select
-    # @param fields List of fields (as string) to select
-    # @return List of records, or single record if there is only one 
-    
-    def select(self, pos=0, num=1, fields=None):
+    def select(self, start=0, count=1, fields=None):
+        """
+        Select rows
+
+        start: start row index
+        count: number of rows to return
+        fields: list of fields to select (default: all)
+        """
         try:
             if fields is None:
                 self.update()
@@ -99,7 +109,7 @@ class TableWrapper:
                 raise Unavailable()
                 
         records = []
-        for i in range(pos,pos+num):
+        for i in range(start,start+count):
             record = {}
             if fields is None:
                 for field in self.__fields:
@@ -110,14 +120,12 @@ class TableWrapper:
             records.append(record)
         return records
 
-    ## Dump the whole table
-    # This method is a generator and yield each record once dumped. Must be used in a for loop for
-    # an efficiency purpose.
-    #
-    # @param fields Array of fields to retrieve. If not specified, all fields are retrieved
-    # @return List of records
-
     def all(self, fields=None):
+        """
+        Enumerate all rows as a dictionary.
+
+        fields: list of fields to select (default: all)
+        """
         if fields is None:
             self.update()
         for i in range(self.count()):
@@ -131,49 +139,84 @@ class TableWrapper:
             yield record    
 
 
-    ## Get database number of fields
-    # @return Number of fields contained in this table
-
     def __len__(self):
+        """
+        Retrieve the number of databases
+        """
         return self.dbms.get_nb_fields(self.table, self.db)
 
-    ## Wrap a field for this 
-
     def __getitem__(self, key):
+        """
+        Retrieve field/column info
+
+        key: field/column name
+        """
         return FieldWrapper(self.dbms, self.table, self.db, key)
 
     def __str__(self):
+        """
+        Retrieve table's name
+        """
         return self.table
 
     def __repr__(self):
+        """
+        Display table name
+        """
         return self.table
         
     def __eq__(self, other):
+        """
+        Compares tables based on their names
+        """
         return (self.table==other)
 
 
 class DatabaseWrapper:
+    """
+    Database abstraction layer.
+    """
+
     def __init__(self, dbms, db):
         self.dbms = dbms
         self.db = db
         self.__tables = None
         
     def tables(self):
+        """
+        Enumerate database's tables
+        """
         if self.__tables is None:
             self.update()
         return self.__tables
 
     def update(self):
+        """
+        Update tables list
+        """
         self.__tables = self.dbms.tables(self.db)
 
     def __len__(self):
+        """
+        Retrieve the number of tables present in the database
+        """
         return self.dbms.getNbTables(self.db)
 
     def __getitem__(self, key):
+        """
+        Retrieve a wrapped table based on its name
+        """
         return TableWrapper(self.dbms, key, self.db)
 
     def __str__(self):
+        """
+        Retrieve database name
+        """
         return self.db
 
     def __repr__(self):
+        """
+        Display database name
+        """
         return self.db
+

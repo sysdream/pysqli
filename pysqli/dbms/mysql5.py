@@ -1,6 +1,6 @@
 #-*- coding:utf-8 -*-
 
-from ..core.plugin import *
+from ..core.dbms import *
 from ..core.forge import SQLForge
 
 class MysqlForge(SQLForge):
@@ -45,9 +45,9 @@ class MysqlForge(SQLForge):
         return self.wrap_sql("SELECT IF(%s,%s,(SELECT %s UNION ALL SELECT %s ))" % (cdt,self.wrap_field('0'),self.wrap_field('0'),self.wrap_field('0')))
 
 
-@plugin('mysqlv5','Mysql version 5')
+@dbms('mysqlv5','Mysql version 5')
 @allow(DBS_ENUM | TABLES_ENUM | COLS_ENUM | FIELDS_ENUM | COMMENT | STR)
-class Mysql5(Plugin):    
+class Mysql5(DBMS):    
 
     def __init__(self, injector, limit_count_max=500):
-        Plugin.__init__(self, MysqlForge, injector, limit_count_max)
+        DBMS.__init__(self, MysqlForge, injector, limit_count_max)

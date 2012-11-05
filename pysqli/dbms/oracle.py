@@ -1,6 +1,6 @@
 #-*- coding:utf-8 -*-
 
-from ..core.plugin import *
+from ..core.dbms import *
 from ..core.forge import SQLForge
 
 class OracleForge(SQLForge):
@@ -62,9 +62,9 @@ class OracleForge(SQLForge):
 	def get_user(self):
 		return '(SELECT user FROM dual)'
 
-@plugin('oracle','Oracle')
+@dbms('oracle','Oracle')
 @allow(DBS_ENUM | TABLES_ENUM | COLS_ENUM | FIELDS_ENUM | COMMENT | STR)
-class Oracle(Plugin):	
+class Oracle(DBMS):	
 	def __init__(self, injector, limit_count_max=500):
-		Plugin.__init__(self, OracleForge, injector, limit_count_max)
+		DBMS.__init__(self, OracleForge, injector, limit_count_max)
 		

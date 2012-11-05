@@ -1,6 +1,6 @@
 #-*- coding:utf-8 -*-
 
-from ..core.plugin import *
+from ..core.dbms import *
 from ..core.forge import SQLForge
 
 class MssqlForge(SQLForge):
@@ -71,8 +71,8 @@ class MssqlForge(SQLForge):
 		return "ASCII(SUBSTRING(%s,%d,1))" % (str,pos+1)
 
 
-@plugin('mssql','Microsoft SQL Server')
+@dbms('mssql','Microsoft SQL Server')
 @allow(DBS_ENUM | TABLES_ENUM | COLS_ENUM | FIELDS_ENUM | COMMENT | STR)
-class Mssql(Plugin):	
+class Mssql(DBMS):	
 	def __init__(self, injector, limit_count_max=500):
-		Plugin.__init__(self, MssqlForge, injector, limit_count_max)
+		DBMS.__init__(self, MssqlForge, injector, limit_count_max)

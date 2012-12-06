@@ -4,7 +4,7 @@
 Exceptions
 """
 
-class OutboundException:
+class OutboundException(Exception):
     """
     Outbound bisection exception.
     

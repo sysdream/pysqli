@@ -15,28 +15,26 @@ an SQL injection.
 from random import choice
 
 class Context:
-    
     """
     Context class
     
     This class is used to store every info related to the injection context.
     """
-    
+
     FIELD_STR = 'string'
     FIELD_INT = 'int'
     INBAND = 'inband'
     BLIND = 'blind'
-    
-    def __init__(self, method=INBAND, field_type=FIELD_STR, url='', \
-        params=None, target=None, comment='/*', strdelim="'", union_tag=None,\
-        union_fields=[], default='0', union_target=-1, use_ssl=False, \
-        smooth=False, headers=None, cookie=None, multithread=True, \
-        truncate=False,encode_str=False):
-        
+
+    def __init__(self, method=INBAND, field_type=FIELD_STR, url='',
+                 params=None, target=None, comment='/*', strdelim="'", union_tag=None,
+                 union_fields=(), default='0', union_target=-1, use_ssl=False,
+                 smooth=False, headers=None, cookie=None, multithread=True,
+                 truncate=False, encode_str=False):
         '''
         Default injection context constructor.
         '''
-        
+
         # injection method
         self.__method = method
         self.__url = url
@@ -53,7 +51,7 @@ class Context:
         self.__headers = headers
         self.__cookie = cookie
         self.__multithread = multithread
-        
+
         # inband specific 
         self.__union_fields = union_fields
         self.__union_target = union_target
@@ -61,7 +59,7 @@ class Context:
             self.__union_tag = union_tag
         else:
             self.__union_tag = ''.join([choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in range(32)])
-        
+
     def get_url(self):
         """
         Returns the target URL
@@ -77,7 +75,7 @@ class Context:
 
     ## Set vulnerable field type
     # @param field_type Field type, must be either FIELD_STR or FIELD_INT
-        
+
     def set_field_type(self, field_type):
         """
         Set field type (FIELD_INT or FIELD_STR)
@@ -86,16 +84,16 @@ class Context:
 
     ## Get vulnerable field type
     # @return Vulnerable field type (FIELD_INT or FIELD_STR)
-    
+
     def get_field_type(self):
         """
         Get field type (FIELD_INT or FIELD_STR)
         """
         return self.__field_type
-        
+
     ## Enable SQL string encvoding
     # Enable SQL string encoding to evade anti-quote functions or WAF
-    
+
     def enable_string_encoding(self, enabled):
         """
         Enable/disable string encoding.
@@ -104,13 +102,13 @@ class Context:
 
     ## Enable SQL query truncation
     # If enabled, comment out the rest of the SQL query
-        
+
     def enable_truncate(self, enabled):
         """
         Enable/disable request truncate.
         """
         self.__truncate = enabled
-        
+
     ## Check if context asks for query truncating        
     # @return True if query truncation is enabled, False otherwise    
     def require_truncate(self):
@@ -118,19 +116,20 @@ class Context:
         Retrieve request truncation requirement.
         """
         return self.__truncate
-        
+
     ## Check if string encoding is required        
     # @return True if string encoding is required, False otherwise
-    
+
     def require_string_encoding(self):
         """
         Determine if string encoding is required or not.
         """
-        return self.__encode_str        
-        
-    ## Enable SSL support
-    # @param enabled True to enable, False to disable
-    
+        return self.__encode_str
+
+        ## Enable SSL support
+
+        # @param enabled True to enable, False to disable
+
     def enable_ssl(self, enabled):
         """
         Enable/disable SSL support.
@@ -139,12 +138,12 @@ class Context:
 
     ## Check if SSL is required
     # @return True if SSL is required, False otherwise
-    
+
     def use_ssl(self):
         """
         Return True if SSL must be used, False otherwise.
         """
-        return self.__use_ssl        
+        return self.__use_ssl
 
 
     def set_smooth(self, enabled=True):
@@ -158,13 +157,13 @@ class Context:
         Determine if smooth must be used or not.
         """
         return self.__smooth
-        
+
     def set_multithread(self, enabled=True):
         """
         Enable/disable multithreading.
         """
         self.__multithread = enabled
-        
+
     def is_multithread(self):
         """
         Determine if multithreading must be used or not.
@@ -175,7 +174,7 @@ class Context:
         """
         Determine if extra headers must be used
         """
-        return (self.__headers is not None)
+        return self.__headers is not None
 
     def set_headers(self, headers):
         """
@@ -195,8 +194,7 @@ class Context:
         if self.__headers is not None:
             self.__headers[header] = value
         else:
-            self.__headers = {}
-            self.__headers[header] = value
+            self.__headers = {header: value}
 
     def get_headers(self):
         """
@@ -227,7 +225,7 @@ class Context:
         """
         self.__params = params
         self.__target = target
-        
+
     def get_params(self):
         """
         Retrieve parameters.
@@ -238,13 +236,13 @@ class Context:
         """
         Retrieve the target parameter
         """
-        return self.__target    
-    
+        return self.__target
+
     def get_comment(self):
         """
         Get comment sequence
         """
-        return self.__comment    
+        return self.__comment
 
     def set_comment(self, comment):
         """
@@ -257,7 +255,7 @@ class Context:
         Retrieve string delimiter
         """
         return self.__str_delim
-    
+
     def set_string_delimiter(self, delim):
         """
         Set string delimiter
@@ -265,7 +263,7 @@ class Context:
         delim: string delimiter
         """
         self.__str_delim = delim
-        
+
     def set_default_value(self, default):
         """
         Set default value to use in the SQL code
@@ -280,7 +278,7 @@ class Context:
         Retrieve default value
         """
         return self.__default
-        
+
     def set_inband_fields(self, fields):
         """
         Set inband fields
@@ -299,13 +297,13 @@ class Context:
         declares 6 fields, [string, string, string, integer, string, integer]
         """
         self.__union_fields = fields
-    
+
     def get_inband_fields(self):
         """
         Retrieve inband fields types
         """
         return self.__union_fields
-    
+
     def get_inband_tag(self):
         """
         Get inband tag
@@ -315,7 +313,7 @@ class Context:
         of the Context class is created.
         """
         return self.__union_tag
-    
+
     def set_inband_target(self, target):
         """
         Sets inband target field index
@@ -332,25 +330,25 @@ class Context:
         """
         Determines if the actual injection context is blind
         """
-        return (self.__method==Context.BLIND)
+        return (self.__method == Context.BLIND)
 
     def is_inband(self):
         """
         Determines if the actual injection context is inband
         """
-        return (self.__method==Context.INBAND)
+        return (self.__method == Context.INBAND)
 
     def in_string(self):
         """
         Determines if the target field is a string
         """
-        return (self.__field_type==Context.FIELD_STR)
-    
+        return (self.__field_type == Context.FIELD_STR)
+
     def in_int(self):
         """
         Determines if the target field is an int
         """
-        return (self.__field_type==Context.FIELD_INT)
+        return (self.__field_type == Context.FIELD_INT)
 
     def use_blind(self):
         """
@@ -369,16 +367,17 @@ class InbandContext(Context):
     """
     Inband injection context
     """
-    
+
     def __init__(self, **kwargs):
         kwargs['method'] = Context.INBAND
         Context.__init__(self, **kwargs)
-        
+
+
 class BlindContext(Context):
     """
     Blind injection context
     """
-    
+
     def __init__(self, **kwargs):
         kwargs['method'] = Context.BLIND
         Context.__init__(self, **kwargs)

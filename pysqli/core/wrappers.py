@@ -12,10 +12,10 @@ Classes:
 
 """
 
-from exceptions import Unavailable, UnknownField
+from exceptions import Unavailable
 
 
-class FieldWrapper:
+class FieldWrapper(object):
     """
     Database field/column abstraction layer.
     """
@@ -27,7 +27,7 @@ class FieldWrapper:
         self.field = field        
     
     def __eq__(self, other):
-        return (other == self.field)
+        return other == self.field
     
     def __str__(self):
         return self.field
@@ -36,7 +36,7 @@ class FieldWrapper:
         return self.field
 
 
-class TableWrapper:
+class TableWrapper(object):
 
     """
     Database table abstraction layer.
@@ -74,14 +74,14 @@ class TableWrapper:
         force: Force cache cleanup before updating.
         """
         if (self.__fields is None) or force:
-            self.__fields = [f for f in self.dbms.fields(self.table,self.db)]
+            self.__fields = [f for f in self.dbms.fields(self.table, self.db)]
 
     def describe(self):
         """
         Describes table structure.
         """
         self.update()
-        return "Table %s\n"%self.table+'\n'.join([' -> %s'%field for field in self.__fields])
+        return "Table %s\n" % self.table + '\n'.join([' -> %s' % field for field in self.__fields])
 
 
     def count(self):
@@ -103,13 +103,11 @@ class TableWrapper:
             if fields is None:
                 self.update()
         except Unavailable:
-            if fields is not None:
-                pass
-            else:
+            if fields is None:
                 raise Unavailable()
-                
+
         records = []
-        for i in range(start,start+count):
+        for i in range(start, start + count):
             record = {}
             if fields is None:
                 for field in self.__fields:
@@ -169,7 +167,7 @@ class TableWrapper:
         """
         Compares tables based on their names
         """
-        return (self.table==other)
+        return self.table == other
 
 
 class DatabaseWrapper:

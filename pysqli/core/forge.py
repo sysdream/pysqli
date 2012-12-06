@@ -5,7 +5,7 @@ class SQLForge:
     """
     SQLForge
 
-    This class is in charge of providing methods to craft SQL queries. Bascially,
+    This class is in charge of providing methods to craft SQL queries. Basically,
     the methods already implemented fit with most of the DBMS.
     """
 
@@ -20,13 +20,13 @@ class SQLForge:
         """
         Wrap a bisection-based query.
 
-        This method must be overriden to provide a way to use bisection given
+        This method must be overridden to provide a way to use bisection given
         a DBMS. There is no universal way to perform this, so it has to be
         implemented in each DBMS plugin.
         """
-        raise 'You must define the wrap_bisec() method'
+        raise NotImplementedError('You must define the wrap_bisec() method')
 
-    
+
     def wrap_string(self, string):
         """
         Wraps a string.
@@ -102,7 +102,7 @@ class SQLForge:
         """
         return "LENGTH(%s)" % string
 
-    
+
     def get_char(self, string, pos):
         """
         Forge a piece of SQL returning the n-th character of a string.
@@ -116,7 +116,7 @@ class SQLForge:
         """
         return "CONCAT(%s,%s)" % (str1, str2)
 
-    
+
     def ascii(self, char):
         """
         Forge a piece of SQL returning the ascii code of a character.
@@ -167,7 +167,7 @@ class SQLForge:
         Builds the second part of an inband injection (following the UNION).
         """
         query = 'SELECT '
-        columns= []        
+        columns= []
         fields = self.context.get_inband_fields()
         tag = self.context.get_inband_tag()
         for i in range(len(fields)):
@@ -177,7 +177,7 @@ class SQLForge:
                 if fields[i]=='s':
                     columns.append(self.wrap_string('0'))
                 elif fields[i]=='i':
-                    columns.append('0')        
+                    columns.append('0')
         return query + ','.join(columns)
 
 
@@ -185,9 +185,9 @@ class SQLForge:
         """
         Forge a piece of SQL returning the DBMS version.
 
-        Must be overriden by each DBMS plugin.
+        Must be overridden by each DBMS plugin.
         """
-        raise 'You must provide the get_version() method.'
+        raise NotImplementedError('You must provide the get_version() method.')
 
 
     def get_user(self):
@@ -203,12 +203,12 @@ class SQLForge:
         """
         return 'database()'
 
-   
+
     def get_databases(self):
         """
         Forge a piece of SQL returning all the known databases.
         """
-        raise 'You must define the "get_databases" function.'
+        raise NotImplementedError('You must define the "get_databases" function.')
 
     def get_database(self, id):
         """
@@ -216,7 +216,7 @@ class SQLForge:
         """
         return self.take(self.get_databases(), id)
 
-            
+
     def get_nb_databases(self):
         """
         Forge a piece of SQL returning the number of databases.
@@ -238,7 +238,7 @@ class SQLForge:
 
         db: target database name.
         """
-        raise 'You must provide the get_tables() method.'
+        raise NotImplementedError('You must provide the get_tables() method.')
 
 
     def get_nb_tables(self,db):
@@ -267,7 +267,7 @@ class SQLForge:
         table: target table name
         db: target database name
         """
-        raise 'You must provide the get_fields() method.'
+        raise NotImplementedError('You must provide the get_fields() method.')
 
 
     def get_nb_fields(self, table, db):
@@ -289,7 +289,7 @@ class SQLForge:
         id: field index
         """
         return self.take(self.get_fields(table, db), id)
-        
+
 
     def get_string_len(self, sql):
         """

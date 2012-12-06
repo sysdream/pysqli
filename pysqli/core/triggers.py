@@ -23,13 +23,12 @@ classes:
 """
 
 import re
-from types import ListType
 
 class Trigger:
 
     MODE_ERROR = 0
     MODE_SUCCESS = 1
-    MODE_UNKOWN = 2
+    MODE_UNKNOWN = 2
 
     def __init__(self, mode=MODE_SUCCESS):
         self._mode = mode
@@ -39,7 +38,7 @@ class Trigger:
         """
         Determine if MODE_ERROR is set
         """
-        return (self._mode == Trigger.MODE_ERROR)
+        return self._mode is Trigger.MODE_ERROR
 
     def get_mode(self):
         """
@@ -65,30 +64,30 @@ class StatusTrigger(Trigger):
     Status-based trigger
     """
     
-    def __init__(self, status, *args, **kargs):
-        Trigger.__init__(self, *args, **kargs)
+    def __init__(self, status, *args, **kwargs):
+        Trigger.__init__(self, *args, **kwargs)
         self._status = status
 
     def execute(self, response):
         """
         Check if status code is the one expected
         """
-        return (response.get_status() == self._status)
+        return response.get_status() is self._status
 
 class RegexpTrigger(Trigger):
     """
-    Regexp-bvased trigger
+    Regexp-based trigger
     """
     
-    def __init__(self, regexps, *args, **kargs):
+    def __init__(self, regexps, *args, **kwargs):
         """
         Constructor
         
         regexps: either a list of regexp or a string representing a regexp to match
         """
-        Trigger.__init__(self, *args, **kargs)
+        Trigger.__init__(self, *args, **kwargs)
         self._regexps = []
-        if type(regexps) is ListType:
+        if isinstance(regexps, list):
             for regexp in regexps:
                 self._regexps.append(re.compile(regexp, re.I|re.MULTILINE))
         else:

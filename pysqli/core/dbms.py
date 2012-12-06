@@ -6,7 +6,6 @@ from context import Context
 from exceptions import OutboundException, PluginMustOverride, Unavailable
 from async import AsyncPool
 from wrappers import DatabaseWrapper, TableWrapper, FieldWrapper
-from types import IntType, StringType
 
 DBS_ENUM = 0x01
 TABLES_ENUM = 0x02
@@ -21,7 +20,7 @@ class DBMSFactory:
     
     Set up a DBMS plugin with a specific injector.
     """
-    
+
     def __init__(self, plugin_class, name, desc):
         self._clazz = plugin_class
         self._name = name
@@ -44,7 +43,7 @@ class DBMSFactory:
         inst.name = self._name
         inst.desc = self._desc
         return inst
-        
+
     def user_agent(self, method, context=Context(), limit_max_count=500):
         """
         Factor a UserAgentInjector and set up the plugin
@@ -70,8 +69,8 @@ class DBMSFactory:
         inst = self._clazz(CmdInjector(context), limit_max_count)
         inst.name = self._name
         inst.desc = self._desc
-        return inst    
-     
+        return inst
+
     def custom(self, injector, *args, **kwargs):
         """
         Factor a custom injector and set up the plugin
@@ -86,8 +85,8 @@ class DBMSFactory:
         inst.desc = self._desc
         return inst
 
-class dbms:
 
+class dbms:
     """
     Class decorator for DBMS
 
@@ -109,13 +108,12 @@ class dbms:
 
 
 class allow:
-
     """
     Plugin decorator
     
     Set the plugin capabilities.
     """
-   
+
 
     def __init__(self, flags):
         self.flags = flags
@@ -123,11 +121,12 @@ class allow:
     def __call__(self, inst):
         def wrapped_(*args):
             a = inst(*args)
-            if hasattr(a,'capabilities'):
+            if hasattr(a, 'capabilities'):
                 a.capabilities |= self.flags
             else:
                 a.capabilities = self.flags
             return a
+
         return wrapped_
 
 
@@ -136,7 +135,7 @@ class DBMS:
     DBMS default class
 
     This class implements an abstraction of the underlying DBMS. It
-    provides methods to perform databases and tables enumeraton as
+    provides methods to perform databases and tables enumeration as
     well as data extraction.
 
     This abstraction allows the user to focus on the data he wants
@@ -156,7 +155,7 @@ class DBMS:
         self.context = injector.get_context()
         self.forge = forge(self.context)
         self.injector = injector
-        self.limit_count_max = limit_count_max        
+        self.limit_count_max = limit_count_max
         self.current_db = None
         self.current_user = None
 
@@ -168,7 +167,7 @@ class DBMS:
         Capability must be part of [DBS_ENUM, TABLES_ENUM, COLS_ENUM,
         FIELDS_ENUM, STR, COMMENT]
         """
-        return (self.capabilities&cap)==cap
+        return (self.capabilities & cap) == cap
 
     def determine(self):
         """
@@ -187,7 +186,7 @@ class DBMS:
         """
         Set injector.
         
-        injector: instance of AbstractInjector or its derivated classes.
+        injector: instance of AbstractInjector or its derived classes.
         """
         method = self.injector.getMethod()
         self.injector = injector(self.context, method)
@@ -226,13 +225,13 @@ class DBMS:
         self.current_db = db
         return DatabaseWrapper(self, self.current_db)
 
-    def apply_bisec(self,cdt,min,max):
+    def apply_bisec(self, cdt, min, max):
         """
         Use SQL bisection to determine an integer value. 
         """
-        while (max-min)>1:
-            mid = (max-min)/2 + min
-            if self.injector.inject(self.forge.wrap_bisec(self.forge.forge_cdt(cdt,mid))):
+        while (max - min) > 1:
+            mid = (max - min) / 2 + min
+            if self.injector.inject(self.forge.wrap_bisec(self.forge.forge_cdt(cdt, mid))):
                 max = mid
             else:
                 min = mid
@@ -263,32 +262,32 @@ class DBMS:
             pool.add_classic_bisec_task(sql, 0, self.limit_count_max)
         pool.solve_tasks()
         return pool.result[0]
-            
+
 
     def get_char(self, sql, pos):
         """
         Forge SQL to extract a character at a given position
         """
         return self.forge.get_char(sql, pos)
-        
+
     def get_blind_str(self, sql):
         """
         Extract a string through a blind SQL injection
         """
         size = self.get_blind_int(self.forge.string_len(sql))
-        if size==(self.limit_count_max-1):
+        if size == (self.limit_count_max - 1):
             raise OutboundException()
         if self.context.is_multithread():
             pool = AsyncPool(self)
             for p in range(size):
-                pool.add_bisec_task(self.forge.ascii(self.forge.get_char(sql,p+1)),0,255)
+                pool.add_bisec_task(self.forge.ascii(self.forge.get_char(sql, p + 1)), 0, 255)
             pool.solve_tasks()
             return pool.get_str_result()
         else:
             result = ''
             for p in range(size):
                 pool = AsyncPool(self)
-                pool.add_classic_bisec_task(self.forge.ascii(self.forge.get_char(sql, p+1)), 0, 255)
+                pool.add_classic_bisec_task(self.forge.ascii(self.forge.get_char(sql, p + 1)), 0, 255)
                 pool.solve_tasks()
                 result += pool.get_str_result()
             return result
@@ -344,7 +343,7 @@ class DBMS:
         """
         Retrieve the database name.
         
-        id: index of the database's name (0<id<count)
+        id: index of the databases name (0<id<count)
         """
         return self.get_str(self.forge.get_database_name(id))
 
@@ -355,12 +354,12 @@ class DBMS:
         if self.has_cap(DBS_ENUM):
             n = self.get_nb_databases()
             for i in range(n):
-                yield DatabaseWrapper(self,self.get_database_name(i))
+                yield DatabaseWrapper(self, self.get_database_name(i))
         else:
             raise Unavailable()
 
 
-    def get_nb_tables(self,db=None):
+    def get_nb_tables(self, db=None):
         """
         Retrieve the number of tables belonging to a database. If no database
         is specified, use the current database.
@@ -373,12 +372,12 @@ class DBMS:
             db = self.database()
             return self.get_int(self.forge.get_nb_tables(db=db))
 
-    def get_table_name(self, id,db=None):
+    def get_table_name(self, id, db=None):
         """
         Retrieve a given table's name from a specified DB.
         """
-        return self.get_str(self.forge.get_table_name(id,db=db))
-    
+        return self.get_str(self.forge.get_table_name(id, db=db))
+
     def tables(self, db=None):
         """
         Enumerates all tables fro a given database. If not specified, use the
@@ -393,11 +392,11 @@ class DBMS:
 
             n = self.get_nb_tables(db)
             for i in range(n):
-                yield TableWrapper(self, self.get_table_name(i, db), db)    
+                yield TableWrapper(self, self.get_table_name(i, db), db)
         else:
             raise Unavailable()
 
-    def get_nb_fields(self, table,db):
+    def get_nb_fields(self, table, db):
         """
         Retrieve the number of fields (columns) from a given table and database.
         """
@@ -457,7 +456,7 @@ class DBMS:
             if self.currrent_db is None:
                 self.database()
             db = self.current_db
-        return self.get_str(self.forge.get_table_field_record(field,table, db, pos))
+        return self.get_str(self.forge.get_table_field_record(field, table, db, pos))
 
     def __getitem__(self, i):
         """
@@ -465,15 +464,14 @@ class DBMS:
         
         i: database index or name.
         """
-        if type(i) is IntType:
+        if isinstance(i, (int, long)):
             d = self.getDatabaseName(i)
             if d is None:
                 raise IndexError
             else:
                 return DatabaseWrapper(self, d)
-        elif type(i) is StringType:
+        elif isinstance(i, basestring):
             return DatabaseWrapper(self, i)
-
 
 
     def __len__(self):

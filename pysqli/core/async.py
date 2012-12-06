@@ -53,14 +53,14 @@ class OptimizedAsyncBisecInjector(Thread):
              
             self.pool.solve_tasks()
     
-            if (self.pool.result[0]==False):
-                if (self.pool.result[2]==False):
+            if self.pool.result[0] is False:
+                if self.pool.result[2] is False:
                     self.min = mid_r
                 else:
                     self.min = mid
                     self.max = mid_r
             else:
-                if (self.pool.result[1]==False):
+                if self.pool.result[1] is False:
                     self.min = mid_l
                     self.max = mid
                 else:
@@ -109,7 +109,6 @@ class AsyncInjector(Thread):
             self.result = self.db.injector.inject(self.sql)
         except Exception, e:
             print e
-            raise 'oops'
             self.error = True
 
 

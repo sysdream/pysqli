@@ -17,7 +17,6 @@ __all__ = [
     'Context',
     'DBMS',
     'allow',
-    'plugin',
     'GetInjector',
     'PostInjector',
     'CookieInjector',

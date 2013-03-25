@@ -9,7 +9,6 @@ setup(	name="PySQLi",
 	packages=[
 		'pysqli',
 		'pysqli.core',
-		'pysqli.dbms',
-        'pysqli.plugins'],
+		'pysqli.dbms'],
 	long_description="PySQLi is an SQL inection framework allowing exploit development and complex exploitations."
 )

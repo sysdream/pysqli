@@ -15,7 +15,7 @@ Simple answer: because there are other ways than HTTP requests to exploit
 SQLi vulnerabilities ! Most of the available tools only rely on HTTP GET/POST
 methods, and sometimes provide other methods. 
 
-PySQLi is thought to be easily modified and extended through derivated classes
+PySQLi is thought to be easily modified and extended through derived classes
 and to be able to inject into various ways such as command line, custom network
 protocols and even in anti-CSRF HTTP forms.
 

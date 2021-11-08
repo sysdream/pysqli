@@ -91,7 +91,7 @@ class Context:
         """
         return self.__field_type
 
-    ## Enable SQL string encvoding
+    ## Enable SQL string encoding
     # Enable SQL string encoding to evade anti-quote functions or WAF
 
     def enable_string_encoding(self, enabled):
@@ -284,7 +284,7 @@ class Context:
         Set inband fields
         
         Inband fields are quite special: they are described with a single string
-        with these possible caracters:
+        with these possible characters:
             - s: specify a string field
             - i: specify an integer field
         
